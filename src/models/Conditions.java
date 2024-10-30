@@ -34,5 +34,12 @@ public class Conditions {
     public void setAvailableWater(double availableWater) {
         this.availableWater = availableWater;
     }
+
+    public void decreaseWater(double amount) {
+        this.availableWater -= amount;
+        if (this.availableWater < 0) {
+            this.availableWater = 0;
+        }
+    }
 }
 
