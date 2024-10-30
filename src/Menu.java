@@ -21,7 +21,7 @@ public class Menu {
                     Ecosystem loadedEcosystem = Utils.loadExistingEcosystem();
                     if (loadedEcosystem != null) {
                         currentBeings = loadedEcosystem.getBeings();
-                        manageEcosystem(loadedEcosystem);
+                            manageEcosystem(loadedEcosystem);
                     }
                     break;
                 case 2:
@@ -59,6 +59,7 @@ public class Menu {
     }
 
     private void manageEcosystem(Ecosystem ecosystem) {
+        printEcosystemState(ecosystem);
         while (true) {
             displayEcosystemMenu();
             int choice = Utils.getIntInput("Select action: ");
@@ -84,7 +85,15 @@ public class Menu {
             }
         }
     }
-
+    private void printEcosystemState(Ecosystem ecosystem) {
+        System.out.println("\nEcosystem state:");
+        System.out.println("\nHumidity:" + ecosystem.getConditions().getHumidity());
+        System.out.println("Water:" + ecosystem.getConditions().getAvailableWater());
+        System.out.println("Temperature:" + ecosystem.getConditions().getTemperature() + "\n\nBeings:");
+        for (Being being : ecosystem.getBeings()) {
+            System.out.println(being.getName() + " population: " + being.getPopulation());
+        }
+    }
     private void displayEcosystemMenu() {
         System.out.println("\n\\\\\\ Ecosystem Management ///");
         System.out.println("1. Add Carnivore");
