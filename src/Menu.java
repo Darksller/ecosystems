@@ -21,7 +21,7 @@ public class Menu {
                     Ecosystem loadedEcosystem = Utils.loadExistingEcosystem();
                     if (loadedEcosystem != null) {
                         currentBeings = loadedEcosystem.getBeings();
-                            manageEcosystem(loadedEcosystem);
+                        manageEcosystem(loadedEcosystem);
                     }
                     break;
                 case 2:
@@ -78,6 +78,9 @@ public class Menu {
                     ecosystem.simulateInteractions();
                     break;
                 case 5:
+                    updateEcosystemConditions(ecosystem);
+                    break;
+                case 6:
                     Utils.saveEcosystem(ecosystem, ecosystem.getName());
                     return;
                 default:
@@ -85,6 +88,7 @@ public class Menu {
             }
         }
     }
+
     private void printEcosystemState(Ecosystem ecosystem) {
         System.out.println("\nEcosystem state:");
         System.out.println("\nHumidity:" + ecosystem.getConditions().getHumidity());
@@ -94,13 +98,25 @@ public class Menu {
             System.out.println(being.getName() + " population: " + being.getPopulation());
         }
     }
+
     private void displayEcosystemMenu() {
         System.out.println("\n\\\\\\ Ecosystem Management ///");
         System.out.println("1. Add Carnivore");
         System.out.println("2. Add Herbivore");
         System.out.println("3. Add Plant");
         System.out.println("4. Simulate Interactions");
-        System.out.println("5. Save and Exit");
+        System.out.println("5. Update Environmental Conditions");
+        System.out.println("6. Save and Exit");
+    }
+
+    private void updateEcosystemConditions(Ecosystem ecosystem) {
+        System.out.println("\n=== Update Environmental Conditions ===");
+        double temperature = Utils.getDoubleInput("Enter new temperature: ");
+        double humidity = Utils.getDoubleInput("Enter new humidity (0-100): ");
+        double water = Utils.getDoubleInput("Enter new available water amount: ");
+
+        ecosystem.updateConditions(temperature, humidity, water);
+        printEcosystemState(ecosystem);
     }
 
     private void addPlant(Ecosystem ecosystem) {
