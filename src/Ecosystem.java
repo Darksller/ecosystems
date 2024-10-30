@@ -22,6 +22,13 @@ public class Ecosystem {
         this.beings = new ArrayList<>();
     }
 
+    public void updateConditions(double temperature, double humidity, double availableWater) {
+        this.conditions.setTemperature(temperature);
+        this.conditions.setHumidity(humidity);
+        this.conditions.setAvailableWater(availableWater);
+        System.out.println("Environmental conditions updated.");
+    }
+
     public Conditions getConditions() {
         return conditions;
     }
@@ -45,11 +52,30 @@ public class Ecosystem {
         Map<String, Integer> initialPopulations = new HashMap<>();
         beings.forEach(being -> initialPopulations.put(being.getName(), being.getPopulation()));
 
+        calculateTotalWaterConsumption();
         updateBasedOnEnvironment();
         simulateFeeding();
         analyzeStability(initialPopulations);
         updatePopulationHistory();
         printEcosystemState();
+    }
+
+    public void calculateTotalWaterConsumption() {
+        double totalWaterConsumption = 0.0;
+
+        for (Being being : beings) {
+            double waterConsumptionPerBeing = 0.0;
+
+            if (being instanceof Plant) {
+                waterConsumptionPerBeing = 0.05;
+            } else if (being instanceof Animal) {
+                waterConsumptionPerBeing = 2.0;
+            }
+
+            totalWaterConsumption += being.getPopulation() * waterConsumptionPerBeing;
+        }
+
+        conditions.decreaseWater(totalWaterConsumption);
     }
 
     private void printEnvironmentalConditions() {
@@ -179,7 +205,7 @@ public class Ecosystem {
             System.out.printf("%s: %s (stability score: %.2f)%n",
                     name, trend, stability);
 
-            suggestManagement(being,  stability);
+            suggestManagement(being, stability);
         }
     }
 
