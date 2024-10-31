@@ -78,6 +78,7 @@ public class Menu {
                     ecosystem.simulateInteractions();
                     break;
                 case 5:
+
                     updateEcosystemConditions(ecosystem);
                     break;
                 case 6:
@@ -123,6 +124,7 @@ public class Menu {
         String name = Utils.getStringInput("Enter plant name: ");
         int population = Utils.getIntInput("Enter population size: ");
         Plant plant = new Plant(name, population);
+        selectPredatorsForBeing(plant);
         ecosystem.addSpecies(plant);
         System.out.println("Plant added to ecosystem.");
     }
@@ -134,6 +136,8 @@ public class Menu {
 
         System.out.println("\nSelect possible victims for " + name + ":");
         selectVictims(carnivore);
+
+        selectPredatorsForBeing(carnivore);
 
         ecosystem.addSpecies(carnivore);
         System.out.println("Carnivore added to ecosystem.");
@@ -180,8 +184,49 @@ public class Menu {
         System.out.println("\nSelect plants that " + name + " can eat:");
         selectVictimsForHerbivore(herbivore);
 
+        selectPredatorsForBeing(herbivore);
+
         ecosystem.addSpecies(herbivore);
         System.out.println("Herbivore added to ecosystem.");
+    }
+
+    private void selectPredatorsForBeing(Being prey) {
+        List<Animal> carnivores = currentBeings.stream()
+                .filter(being -> being instanceof Animal && ((Animal) being).getDiet() instanceof Carnivore)
+                .map(being -> (Animal) being)
+                .toList();
+
+        if (carnivores.isEmpty()) {
+            System.out.println("No predators available yet.");
+            return;
+        }
+
+        System.out.println("\nSelect predators for " + prey.getName() + ":");
+
+        while (true) {
+            System.out.println("\nAvailable carnivores:");
+            for (int i = 0; i < carnivores.size(); i++) {
+                Animal carnivore = carnivores.get(i);
+                System.out.println((i + 1) + ". " + carnivore.getName() +
+                        " (Population: " + carnivore.getPopulation() + ")");
+            }
+            System.out.println("0. Finish selection");
+
+            int choice = Utils.getIntInput("Select predator (0 to finish): ");
+            if (choice == 0) break;
+
+            if (choice > 0 && choice <= carnivores.size()) {
+                Animal predator = carnivores.get(choice - 1);
+                if (!predator.getVictims().contains(prey)) {
+                    predator.addVictim(prey);
+                    System.out.println(prey.getName() + " added as prey for " + predator.getName());
+                } else {
+                    System.out.println("This being is already a prey for " + predator.getName());
+                }
+            } else {
+                System.out.println("Invalid choice.");
+            }
+        }
     }
 
     private void selectVictimsForHerbivore(Animal herbivore) {

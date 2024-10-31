@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Optional;
 import java.util.Scanner;
 
 import interfaces.DietInterface;
@@ -19,15 +20,34 @@ public final class Utils {
             return null;
         }
 
+        displayEcosystemFiles(files);
+        int choice = getIntInput("Select ecosystem (0 to return): ");
+        if (choice == 0 || choice > files.length) return null;
+
+        File selectedFile = files[choice - 1];
+        Ecosystem ecosystem;
+
+        try {
+            ecosystem = parseEcosystemFile(selectedFile);
+            parseVictimRelationships(selectedFile, ecosystem);
+        } catch (IOException e) {
+            System.out.println("Error loading ecosystem: " + e.getMessage());
+            return null;
+        }
+
+        System.out.println("Ecosystem loaded successfully!");
+        return ecosystem;
+    }
+
+    private static void displayEcosystemFiles(File[] files) {
         System.out.println("\nAvailable ecosystems:");
         for (int i = 0; i < files.length; i++) {
             System.out.println((i + 1) + ". " + files[i].getName().replace(".txt", ""));
         }
+    }
 
-        int choice = getIntInput("Select ecosystem (0 to return): ");
-        if (choice == 0 || choice > files.length) return null;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(files[choice - 1]))) {
+    private static Ecosystem parseEcosystemFile(File file) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String name = reader.readLine().split(":")[1].trim();
             String[] conditions = reader.readLine().split(":");
             double temperature = Double.parseDouble(conditions[1].trim());
@@ -35,39 +55,70 @@ public final class Utils {
             double water = Double.parseDouble(conditions[3].trim());
 
             Ecosystem ecosystem = new Ecosystem(name, new Conditions(temperature, humidity, water));
+            int beingsCount = Integer.parseInt(reader.readLine().split(":")[1].trim());
 
+            for (int i = 0; i < beingsCount; i++) {
+                loadBeing(reader, ecosystem);
+            }
+
+            return ecosystem;
+        }
+    }
+
+    private static void loadBeing(BufferedReader reader, Ecosystem ecosystem) throws IOException {
+        String beingType = reader.readLine().trim();
+        String beingName = reader.readLine().split(":")[1].trim();
+        int population = Integer.parseInt(reader.readLine().split(":")[1].trim());
+
+        if (beingType.equals("Plant")) {
+            ecosystem.addSpecies(new Plant(beingName, population));
+        } else {
+            String dietType = reader.readLine().split(":")[1].trim();
+            DietInterface diet = dietType.equals("Carnivore") ? new Carnivore() : new Herbivore();
+            Animal animal = new Animal(beingName, population, diet);
+
+            int victimsCount = Integer.parseInt(reader.readLine().split(":")[1].trim());
+            for (int j = 0; j < victimsCount; j++) {
+                reader.readLine();
+            }
+            ecosystem.addSpecies(animal);
+        }
+    }
+
+    private static void parseVictimRelationships(File file, Ecosystem ecosystem) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            reader.readLine();
+            reader.readLine();
             int beingsCount = Integer.parseInt(reader.readLine().split(":")[1].trim());
 
             for (int i = 0; i < beingsCount; i++) {
                 String beingType = reader.readLine().trim();
                 String beingName = reader.readLine().split(":")[1].trim();
-                int population = Integer.parseInt(reader.readLine().split(":")[1].trim());
+                reader.readLine();
 
-                if (beingType.equals("Plant")) {
-                    ecosystem.addSpecies(new Plant(beingName, population));
-                } else {
-                    String dietType = reader.readLine().split(":")[1].trim();
-                    DietInterface diet = dietType.equals("Carnivore") ? new Carnivore() : new Herbivore();
-                    Animal animal = new Animal(beingName, population, diet);
+                if (beingType.equals("Plant")) continue;
 
-                    int victimsCount = Integer.parseInt(reader.readLine().split(":")[1].trim());
-                    for (int j = 0; j < victimsCount; j++) {
-                        String victimName = reader.readLine().trim();
-                        ecosystem.getBeings().stream()
-                                .filter(b -> b.getName().equals(victimName))
-                                .findFirst().ifPresent(animal::addVictim);
-                    }
-                    ecosystem.addSpecies(animal);
+                Animal animal = ecosystem.getBeings().stream()
+                        .filter(b -> b instanceof Animal && b.getName().equals(beingName))
+                        .map(b -> (Animal) b)
+                        .findFirst()
+                        .orElse(null);
+
+                if (animal == null) continue;
+
+                reader.readLine();
+                int victimsCount = Integer.parseInt(reader.readLine().split(":")[1].trim());
+                for (int j = 0; j < victimsCount; j++) {
+                    String victimName = reader.readLine().trim();
+                    ecosystem.getBeings().stream()
+                            .filter(b -> b.getName().equals(victimName))
+                            .findFirst()
+                            .ifPresent(animal::addVictim);
                 }
             }
-
-            System.out.println("Ecosystem loaded successfully!");
-            return ecosystem;
-        } catch (IOException e) {
-            System.out.println("Error loading ecosystem: " + e.getMessage());
-            return null;
         }
     }
+
 
     public static void saveEcosystem(Ecosystem ecosystem, String name) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(ECOSYSTEMS_DIRECTORY + name + ".txt"))) {

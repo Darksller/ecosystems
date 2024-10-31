@@ -45,6 +45,7 @@ public class Ecosystem {
         return beings;
     }
 
+
     public void simulateInteractions() {
         System.out.println("\n=== Simulating ecosystem: " + name + " ===");
         printEnvironmentalConditions();
@@ -121,9 +122,8 @@ public class Ecosystem {
         for (Being victim : animal.getVictims()) {
             if (victim.getPopulation() <= 0) continue;
 
-            // Увеличиваем успех охоты при малом количестве хищников
             double huntingSuccess = calculateHuntingSuccess(animal, victim);
-            // Увеличиваем процент успешной охоты
+
             int preysCaught = (int) (victim.getPopulation() * 0.4 * huntingSuccess);
             preysCaught = Math.min(preysCaught, victim.getPopulation());
 
